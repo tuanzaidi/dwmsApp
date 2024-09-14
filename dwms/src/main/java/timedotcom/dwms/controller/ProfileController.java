@@ -29,12 +29,12 @@ public class ProfileController {
     }
 
     @PostMapping
-    public Profile createProfile(@ModelAttribute Profile profile) {
+    public Profile createProfile(@RequestBody Profile profile) {
         return profileService.createProfile(profile);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Profile> updateProfile(@PathVariable Long id, @ModelAttribute Profile profileDetails) {
+    public ResponseEntity<Profile> updateProfile(@PathVariable Long id, @RequestBody Profile profileDetails) {
         try {
             Profile updatedProfile = profileService.updateProfile(id, profileDetails);
             return ResponseEntity.ok(updatedProfile);

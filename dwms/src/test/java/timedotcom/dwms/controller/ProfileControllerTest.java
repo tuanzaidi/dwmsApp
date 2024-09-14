@@ -51,7 +51,6 @@ class ProfileControllerTest {
         verify(profileService, times(1)).getAllProfiles();
     }
 
-    @SuppressWarnings("null")
     @Test
     void testGetProfileById() {
         when(profileService.getProfileById(1L)).thenReturn(Optional.of(profile));
@@ -88,7 +87,6 @@ class ProfileControllerTest {
         verify(profileService, times(1)).createProfile(any(Profile.class));
     }
 
-    @SuppressWarnings("null")
     @Test
     void testUpdateProfile() {
         when(profileService.updateProfile(eq(1L), any(Profile.class))).thenReturn(profile);

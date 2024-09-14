@@ -1,6 +1,7 @@
 package timedotcom.dwms.controller;
 
 import timedotcom.dwms.model.User;
+import timedotcom.dwms.model.UserDto;
 import timedotcom.dwms.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,39 +34,42 @@ class UserControllerTest {
     @InjectMocks
     private UserController userController;
 
-    private User user;
+    private UserDto userDto;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        user = new User();
-        user.setId(1L);
-        user.setUsername("testuser");
-        user.setEmail("testuser@example.com");
-        user.setPassword("password");
+        userDto = new UserDto(
+            1L,
+            "testuser",
+            "testuser@example.com",
+            LocalDateTime.now(),
+            LocalDateTime.now(),
+            Collections.emptyList()
+        );
     }
 
     @Test
     void testGetAllUsers() {
-        List<User> users = Arrays.asList(user);
+        List<UserDto> users = Arrays.asList(userDto);
         when(userService.getAllUsers()).thenReturn(users);
 
-        List<User> result = userController.getAllUsers();
+        ResponseEntity<List<UserDto>> result = userController.getAllUsers();
 
-        assertEquals(1, result.size());
-        assertEquals(user.getUsername(), result.get(0).getUsername());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(1, result.getBody().size());
+        assertEquals(userDto.getUsername(), result.getBody().get(0).getUsername());
         verify(userService, times(1)).getAllUsers();
     }
 
-    @SuppressWarnings("null")
     @Test
     void testGetUserById() {
-        when(userService.getUserById(1L)).thenReturn(Optional.of(user));
+        when(userService.getUserById(1L)).thenReturn(Optional.of(userDto));
 
-        ResponseEntity<User> response = userController.getUserById(1L);
+        ResponseEntity<UserDto> response = userController.getUserById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(user.getUsername(), response.getBody().getUsername());
+        assertEquals(userDto.getUsername(), response.getBody().getUsername());
         verify(userService, times(1)).getUserById(1L);
     }
 
@@ -71,7 +77,7 @@ class UserControllerTest {
     void testGetUserByIdNotFound() {
         when(userService.getUserById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<User> response = userController.getUserById(1L);
+        ResponseEntity<UserDto> response = userController.getUserById(1L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(userService, times(1)).getUserById(1L);
@@ -79,32 +85,32 @@ class UserControllerTest {
 
     @Test
     void testCreateUser() {
+        User user = new User();
+        user.setUsername("newuser");
+        user.setEmail("newuser@example.com");
+        user.setPassword("newpassword");
+
         when(passwordEncoder.encode(any(CharSequence.class))).thenReturn("hashedpassword");
         when(userService.createUser(any(User.class))).thenReturn(user);
 
-        User newUser = new User();
-        newUser.setUsername("newuser");
-        newUser.setEmail("newuser@example.com");
-        newUser.setPassword("newpassword");
+        ResponseEntity<UserDto> response = userController.createUser(user);
 
-        User createdUser = userController.createUser(newUser);
-
-        assertEquals(user.getUsername(), createdUser.getUsername());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(user.getUsername(), response.getBody().getUsername());
         verify(userService, times(1)).createUser(any(User.class));
     }
 
-    @SuppressWarnings("null")
     @Test
     void testUpdateUser() {
+        User user = new User();
+        user.setUsername("updateduser");
+        user.setEmail("updateduser@example.com");
+        user.setPassword("updatedpassword");
+
         when(passwordEncoder.encode(any(CharSequence.class))).thenReturn("hashedpassword");
         when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);
 
-        User updatedUser = new User();
-        updatedUser.setUsername("updateduser");
-        updatedUser.setEmail("updateduser@example.com");
-        updatedUser.setPassword("updatedpassword");
-
-        ResponseEntity<User> response = userController.updateUser(1L, updatedUser);
+        ResponseEntity<UserDto> response = userController.updateUser(1L, user);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(user.getUsername(), response.getBody().getUsername());
@@ -113,15 +119,15 @@ class UserControllerTest {
 
     @Test
     void testUpdateUserNotFound() {
+        User user = new User();
+        user.setUsername("updateduser");
+        user.setEmail("updateduser@example.com");
+        user.setPassword("updatedpassword");
+
         when(userService.updateUser(eq(1L), any(User.class)))
                 .thenThrow(new RuntimeException("User not found with id 1"));
 
-        User updatedUser = new User();
-        updatedUser.setUsername("updateduser");
-        updatedUser.setEmail("updateduser@example.com");
-        updatedUser.setPassword("updatedpassword");
-
-        ResponseEntity<User> response = userController.updateUser(1L, updatedUser);
+        ResponseEntity<UserDto> response = userController.updateUser(1L, user);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(userService, times(1)).updateUser(eq(1L), any(User.class));

@@ -1,6 +1,7 @@
 package timedotcom.dwms.controller;
 
 import timedotcom.dwms.model.User;
+import timedotcom.dwms.model.UserDto;
 import timedotcom.dwms.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,27 +18,31 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        List<UserDto> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.getUserById(id);
+    public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
+        Optional<UserDto> user = userService.getUserById(id);
         return user.map(ResponseEntity::ok)
                    .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public User createUser(@ModelAttribute User user) {
-        return userService.createUser(user);
+    public ResponseEntity<UserDto> createUser(@RequestBody User user) {
+        User createUser = userService.createUser(user);
+        return ResponseEntity.ok(new UserDto(createUser.getId(),createUser.getUsername(),createUser.getEmail(),
+            createUser.getCreatedAt(),createUser.getUpdatedAt(),createUser.getProfiles()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @ModelAttribute User userDetails) {
+    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         try {
-            User updatedUser = userService.updateUser(id, userDetails);
-            return ResponseEntity.ok(updatedUser);
+            User updateUser = userService.updateUser(id,userDetails);
+            return ResponseEntity.ok(new UserDto(updateUser.getId(),updateUser.getUsername(),updateUser.getEmail(),
+                updateUser.getCreatedAt(),updateUser.getUpdatedAt(),updateUser.getProfiles()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

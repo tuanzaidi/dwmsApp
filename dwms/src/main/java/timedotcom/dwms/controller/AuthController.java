@@ -5,22 +5,41 @@ import timedotcom.dwms.config.JwtUtil;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/login")
 public class AuthController {
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
     @PostMapping
     public Map<String, Object> postLogin(@RequestBody UserLogin loginRequest) {
         Map<String, Object> response = new HashMap<>();
+        try {
+            // Authenticate the user
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsername(), 
+                    loginRequest.getPassword()
+                )
+            );
+            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();            
 
-        if ("user".equals(loginRequest.getUsername()) && "password".equals(loginRequest.getPassword())) {
-            String token = JwtUtil.generateToken(loginRequest.getUsername());
+            String token = JwtUtil.generateToken(userDetails.getUsername());
             response.put("token", token);
-            response.put("user", loginRequest.getUsername());
+            response.put("user", userDetails.getUsername());
             response.put("message", "Login successful");
-        } else {
+        } catch (Exception e) {
             response.put("message", "Invalid username or password");
         }
 
