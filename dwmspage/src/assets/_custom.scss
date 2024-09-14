@@ -1,0 +1,17 @@
+:root {
+    --bs-primary: #f454cd !important;
+    --bs-primary-rgb: 244, 84, 205 !important;
+
+    --bs-secondary: #c15ffb !important;
+    --bs-secondary-rgb: 193, 111, 251 !important;
+  }
+
+.vh-85 {
+    height: 85vh !important;
+}
+
+.router-view {
+    min-height: 90vh;
+}
+
+@import '~bootstrap/scss/bootstrap';
